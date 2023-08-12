@@ -32,15 +32,23 @@ interface Build {
 
 interface RawRun {
   buildId: string;
-  createdAt: string;
   url: string;
   lhr: string;
 }
 
-type Run = Omit<RawRun, "createdAt" | "lhr"> & {
-  createdAt: Date;
+type Run = Omit<RawRun, "lhr"> & {
   lhr: LHR;
 };
+
+type AuditId = keyof typeof AUDIT_IDS;
+type GroupedAudits = Record<AuditId, number[]>;
+type GroupedAuditsByBuild = Record<string, GroupedAudits>;
+
+interface RunAudit {
+  buildId: string;
+  auditId: AuditId;
+  value: number;
+}
 
 async function fetchBuilds(): Promise<Build[]> {
   const { data } = await axios.get<Build[]>(
@@ -62,7 +70,6 @@ async function fetchRuns({
 
   return data.map<Run>((run) => ({
     ...run,
-    createdAt: new Date(run.createdAt),
     lhr: JSON.parse(run.lhr),
   }));
 }
@@ -94,10 +101,6 @@ async function fetchAllRuns({
   return allRuns;
 }
 
-type AuditId = keyof typeof AUDIT_IDS;
-type GroupedAudits = Record<AuditId, number[]>;
-type GroupedAuditsByBuild = Record<string, GroupedAudits>;
-
 function groupByBuildAndAudits({
   runs,
 }: {
@@ -126,10 +129,25 @@ function groupByBuildAndAudits({
   );
 }
 
+function getRunAudits({ runs }: { runs: Run[] }): RunAudit[] {
+  return runs.reduce<RunAudit[]>((acc, { buildId, lhr: { audits } }) => {
+    AUDIT_IDS.forEach((auditId) => {
+      const numericValue = audits[auditId]?.numericValue || -1;
+      acc.push({
+        buildId,
+        auditId: auditId as AuditId,
+        value: numericValue,
+      });
+    });
+
+    return acc;
+  }, []);
+}
+
 app.get("/fetchAudits", async (req: Request, res: Response) => {
   const builds: Build[] = (await fetchBuilds()).slice(0, 10);
   const runs: Run[] = await fetchAllRuns({ builds, url: URL });
-  const audits = groupByBuildAndAudits({ runs });
+  const audits: RunAudit[] = getRunAudits({ runs });
   res.json(audits);
 });
 
