@@ -1,10 +1,10 @@
 {
   "name": "lhci-tools",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "npm run build && node dist/index.js",
-    "debug": "npm run build && node --inspect dist/index.js",
+    "start": "npm run build && node dist/server.js",
+    "debug": "npm run build && node --inspect dist/server.js",
     "build": "tsc"
   },
   "author": "",
