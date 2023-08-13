@@ -10,7 +10,7 @@ export async function fetchBuilds({
   project: string;
 }): Promise<Build[]> {
   const { data } = await axios.get<RawBuild[]>(
-    `${host}/v1/projects/${project}/builds`
+    `${host}/v1/projects/${project}/builds?limit=30`
   );
 
   return data.map<Build>((build) => ({

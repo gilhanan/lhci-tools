@@ -18,7 +18,7 @@ export async function fetchAuditsRuns({
   project: string;
   url: string;
 }): Promise<AuditRun[]> {
-  const builds: Build[] = (await fetchBuilds({ host, project })).slice(0, 10);
+  const builds: Build[] = await fetchBuilds({ host, project });
   const runs: Run[] = await fetchAllRuns({ host, project, builds, url });
   const audits: AuditRun[] = calcRunAudits({ builds, runs });
   return audits;
