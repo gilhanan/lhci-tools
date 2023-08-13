@@ -1,0 +1,16 @@
+let Data= print 0
+    | extend data = parse_json('[]')
+    | mv-expand data
+    | project
+        buildId = tostring(data.buildId),
+        commitMessage = tostring(data.commitMessage),
+        committedAt = todatetime(data.committedAt),
+        auditId = tostring(data.auditId),
+        value = tolong(data.value);
+Data
+| where commitMessage != "Numbers of runs 21"
+| summarize min(value) by auditId, buildId, committedAt
+| sort by committedAt asc
+| extend rowNumber = row_number()
+| project rowNumber, auditId, min_value
+| render linechart 
