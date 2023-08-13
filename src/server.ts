@@ -8,7 +8,7 @@ const PORT: number = 3000;
 const host = HOST;
 const project = PROJECT;
 
-app.get("/fetchAudits", async (req: Request, res: Response) => {
+app.get("/", async (req: Request, res: Response) => {
   const audits = await fetchAuditsRuns({ host, project, url: URL });
   res.json(audits);
 });
